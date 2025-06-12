@@ -15,15 +15,22 @@
             <a href="{{ url_for('logout') }}">Logout</a>
         </nav>
     </header>
+
     <div class="container">
-        <h1>Your Profile</h1>
-        {% if user[4] %}
-            <img src="{{ url_for('uploaded_file', filename=user[4]) }}" alt="Profile Picture">
-        {% endif %}
-        <p><strong>Username:</strong> {{ user[0] }}</p>
-        <p><strong>Email:</strong> {{ user[1] }}</p>
-        <p><strong>Gender:</strong> {{ user[2] }}</p>
-        <p><strong>Interested in:</strong> {{ user[3] }}</p>
+        <h1 style="text-align: center;">Your Profile</h1>
+
+        <div class="card" style="align-items: center;">
+            {% if user[4] %}
+                <img src="{{ url_for('uploaded_file', filename=user[4]) }}" alt="Profile Picture">
+            {% else %}
+                <img src="{{ url_for('static', filename='default-profile.png') }}" alt="Default Profile">
+            {% endif %}
+
+            <p><strong>Username:</strong> {{ user[0] }}</p>
+            <p><strong>Email:</strong> {{ user[1] }}</p>
+            <p><strong>Gender:</strong> {{ user[2] }}</p>
+            <p><strong>Interested in:</strong> {{ user[3] }}</p>
+        </div>
     </div>
 </body>
 </html>
