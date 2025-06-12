@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - SoulSwipe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SoulSwipe Logo" class="logo">
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('matches') }}">Matches</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h1>Your Profile</h1>
+        {% if user[4] %}
+            <img src="{{ url_for('uploaded_file', filename=user[4]) }}" alt="Profile Picture">
+        {% endif %}
+        <p><strong>Username:</strong> {{ user[0] }}</p>
+        <p><strong>Email:</strong> {{ user[1] }}</p>
+        <p><strong>Gender:</strong> {{ user[2] }}</p>
+        <p><strong>Interested in:</strong> {{ user[3] }}</p>
+    </div>
+</body>
+</html>

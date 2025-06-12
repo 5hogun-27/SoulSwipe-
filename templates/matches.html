@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matches - SoulSwipe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SoulSwipe Logo" class="logo">
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('profile') }}">Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h1>Your Matches</h1>
+        {% if matches %}
+            <div>
+                {% for match in matches %}
+                    <div class="card">
+                        {% if match[2] %}
+                            <img src="{{ url_for('uploaded_file', filename=match[2]) }}" alt="{{ match[1] }}'s profile">
+                        {% endif %}
+                        <h2>{{ match[1] }}</h2>
+                        <a href="{{ url_for('matches', match_id=match[0]) }}">Chat</a>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if selected_match_id %}
+                <h2>Chat</h2>
+                <div class="chat-box">
+                    {% for message in messages %}
+                        <div class="message {{ 'sent' if message[0] == session.user_id else 'received' }}">
+                            <strong>{{ message[3] }}:</strong> {{ message[1] }}<br>
+                            <small>{{ message[2] }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+                <form method="POST" action="{{ url_for('send_message', receiver_id=selected_match_id) }}">
+                    <input type="text" name="message" placeholder="Type a message..." required>
+                    <button type="submit">Send</button>
+                </form>
+            {% endif %}
+        {% else %}
+            <p>No matches yet!</p>
+        {% endif %}
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
