@@ -9,6 +9,9 @@ app.secret_key = 'your_secret_key'  # Change this for production
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 
+# Ensure upload folder exists (important for Render)
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 # Database initialization
 def init_db():
     with sqlite3.connect('database.db') as conn:
@@ -44,7 +47,6 @@ def init_db():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-# Routes
 @app.route('/')
 def index():
     if 'user_id' not in session:
@@ -53,12 +55,10 @@ def index():
         c = conn.cursor()
         c.execute('SELECT id, username, gender, interested_in, profile_pic FROM users WHERE id != ?', (session['user_id'],))
         users = c.fetchall()
-        # Filter based on gender and interest
         user_id = session['user_id']
         c.execute('SELECT gender, interested_in FROM users WHERE id = ?', (user_id,))
         user = c.fetchone()
         filtered_users = [u for u in users if (u[2] in user[1].split(',')) and (user[0] in u[3].split(','))]
-        # Exclude already liked users
         c.execute('SELECT liked_user_id FROM likes WHERE user_id = ?', (user_id,))
         liked_ids = [row[0] for row in c.fetchall()]
         filtered_users = [u for u in filtered_users if u[0] not in liked_ids]
@@ -72,13 +72,16 @@ def register():
         password = request.form['password']
         gender = request.form['gender']
         interested_in = ','.join(request.form.getlist('interested_in'))
-        profile_pic = request.files['profile_pic']
-        
+        profile_pic = request.files.get('profile_pic')
+
+        filename = None
         if profile_pic and allowed_file(profile_pic.filename):
             filename = secure_filename(profile_pic.filename)
-            profile_pic.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        else:
-            filename = None
+            try:
+                profile_pic.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            except Exception as e:
+                print("File save error:", e)
+                flash("Error saving profile picture.", "error")
 
         try:
             with sqlite3.connect('database.db') as conn:
@@ -90,12 +93,15 @@ def register():
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash('Username or email already exists.', 'error')
+        except Exception as e:
+            print("Registration Error:", e)
+            flash('Something went wrong. Please try again.', 'error')
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        identifier = request.form['identifier']  # Can be username or email
+        identifier = request.form['identifier']
         password = request.form['password']
         with sqlite3.connect('database.db') as conn:
             c = conn.cursor()
@@ -125,7 +131,6 @@ def like(user_id):
     with sqlite3.connect('database.db') as conn:
         c = conn.cursor()
         c.execute('INSERT INTO likes (user_id, liked_user_id) VALUES (?, ?)', (session['user_id'], user_id))
-        # Check for mutual like
         c.execute('SELECT id FROM likes WHERE user_id = ? AND liked_user_id = ?', (user_id, session['user_id']))
         if c.fetchone():
             flash('It’s a match!', 'success')
@@ -142,14 +147,12 @@ def matches():
         return redirect(url_for('login'))
     with sqlite3.connect('database.db') as conn:
         c = conn.cursor()
-        # Get mutual likes (matches)
         c.execute('''SELECT u.id, u.username, u.profile_pic
                      FROM users u
                      JOIN likes l1 ON u.id = l1.liked_user_id
                      JOIN likes l2 ON u.id = l2.user_id
                      WHERE l1.user_id = ? AND l2.liked_user_id = ?''', (session['user_id'], session['user_id']))
         matches = c.fetchall()
-        # Get messages for a selected match (if any)
         selected_match_id = request.args.get('match_id')
         messages = []
         if selected_match_id:
@@ -183,7 +186,7 @@ def logout():
     flash('Logged out successfully.', 'success')
     return redirect(url_for('login'))
 
+# Only run init_db if running locally (Render handles WSGI)
 if __name__ == '__main__':
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     init_db()
     app.run(debug=True)
