@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoulSwipe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SoulSwipe Logo" class="logo">
+        <nav>
+            <a href="{{ url_for('profile') }}">Profile</a>
+            <a href="{{ url_for('matches') }}">Matches</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h1>SoulSwipe</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% if users %}
+            {% for user in users %}
+                <div class="card" data-user-id="{{ user[0] }}">
+                    {% if user[4] %}
+                        <img src="{{ url_for('uploaded_file', filename=user[4]) }}" alt="{{ user[1] }}'s profile">
+                    {% endif %}
+                    <h2>{{ user[1] }}</h2>
+                    <p>Gender: {{ user[2] }}</p>
+                    <button id="like-btn">Like</button>
+                    <button id="pass-btn">Pass</button>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No more users to swipe!</p>
+        {% endif %}
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
