@@ -46,6 +46,10 @@ def init_db():
         """)
         conn.commit()
 
+# Ensure uploads folder and DB exist (this runs on all environments)
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+init_db()
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
@@ -193,6 +197,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    init_db()
     app.run(debug=True)
