@@ -1,4 +1,3 @@
-// Swipe functionality
 let currentCard = 0;
 const cards = document.querySelectorAll('.card');
 
@@ -18,16 +17,19 @@ function updateSwipeButtons() {
         const userId = cards[currentCard].dataset.userId;
 
         likeBtn.onclick = () => window.location.href = `/like/${userId}`;
-        passBtn.onclick = () => window.location.href = `/pass/${userId}`;
+        passBtn.onclick = () => {
+            currentCard++;
+            if (currentCard < cards.length) {
+                showCard(currentCard);
+            } else {
+                document.querySelector('.swipe-buttons').style.display = 'none';
+                document.querySelector('.container').innerHTML += '<p>No more users to swipe!</p>';
+            }
+        };
     }
 }
 
+// Initialize
 if (cards.length > 0) {
     showCard(currentCard);
-}
-
-// Chat auto-scroll
-const chatBox = document.querySelector('.chat-box');
-if (chatBox) {
-    chatBox.scrollTop = chatBox.scrollHeight;
 }
